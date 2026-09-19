@@ -187,9 +187,9 @@ Membership in the `docker` group is effectively administrative access to the mac
 
 Checkpoint:
 
-- [ ] `docker --version` works
-- [ ] Docker service is active
-- [ ] `docker run hello-world` succeeds
+- [x] `docker --version` works
+- [x] Docker service is active
+- [x] `docker run hello-world` succeeds
 - [ ] Docker works without `sudo`, if the optional group step was used
 
 ---
@@ -253,10 +253,10 @@ Success means the output inside the container identifies the RTX 3080 and displa
 
 Checkpoint:
 
-- [ ] Host `nvidia-smi` sees the RTX 3080
-- [ ] `nvidia-container-toolkit` is installed
+- [x] Host `nvidia-smi` sees the RTX 3080
+- [x] `nvidia-container-toolkit` is installed
 - [ ] Docker was restarted after runtime configuration
-- [ ] Container `nvidia-smi` sees the RTX 3080
+- [x] Container `nvidia-smi` sees the RTX 3080
 
 Do not continue to Isaac Sim until this checkpoint passes.
 
@@ -391,11 +391,11 @@ This is a template, not yet the final GUI command. Display forwarding, cache pat
 
 First Isaac Sim milestones:
 
-- [ ] The container starts without GPU errors
-- [ ] Isaac Sim reports the RTX 3080 renderer
-- [ ] A blank stage opens or runs headlessly
-- [ ] A cube can be created, simulated, and saved
-- [ ] The project folder is visible inside the container at `/workspace/so101`
+- [x] The container starts without GPU errors
+- [x] Isaac Sim reports the RTX 3080 renderer
+- [x] A blank stage opens or runs headlessly
+- [x] A cube can be created, simulated, and saved
+- [x] The project folder is visible inside the container at `/workspace/so101`
 
 ---
 
@@ -893,17 +893,17 @@ Use real-world failures to update the simulation distribution, retrain, and reev
 
 - [x] Native Ubuntu 24.04
 - [x] RTX 3080 detected on host
-- [ ] Docker Engine installed and verified
+- [x] Docker Engine installed and verified
 - [ ] Docker usable without `sudo` if desired
-- [ ] NVIDIA Container Toolkit installed
-- [ ] RTX 3080 visible inside a CUDA container
+- [x] NVIDIA Container Toolkit installed
+- [x] RTX 3080 visible inside a CUDA container
 
 ## Isaac Sim and asset
 
-- [ ] Compatible Isaac Sim image version pinned
-- [ ] Isaac Sim starts with GPU acceleration
-- [ ] Project folder mounts into the container
-- [ ] SO-101 URDF and meshes stored locally
+- [x] Compatible Isaac Sim image version pinned
+- [x] Isaac Sim starts with GPU acceleration
+- [x] Project folder mounts into the container
+- [x] SO-101 URDF and meshes stored locally
 - [ ] SO-101 imported to USD
 - [ ] Joint names/order/axes/signs/limits validated
 - [ ] Gripper and collision geometry validated
@@ -938,15 +938,21 @@ Use real-world failures to update the simulation distribution, retrain, and reev
 
 # Immediate next action
 
-Continue only with Docker first:
+The Docker/GPU and Isaac Sim startup milestones were verified on 2026-09-19 UTC.
+See [README.md](README.md) for the working launcher and environment details.
+The launcher automatically uses the existing Docker group membership; the current
+desktop session still needs a logout/login for ordinary `docker` commands.
 
 ```bash
-docker --version
-sudo systemctl status docker
-sudo docker run hello-world
+cd /home/yuto/Robotics/Sim2Real_SO101_IsaacSim
+./scripts/isaac-sim.sh start
 ```
 
-Once those pass, install NVIDIA Container Toolkit and run the containerized `nvidia-smi` test. Do not start the Isaac Sim or SO-101 import work until Docker can reliably see the RTX 3080.
+The next project phase is importing and validating the existing SO-101 URDF at
+`assets/robots/so101/so101_new_calib.urdf`. All 13 referenced mesh files are present.
+A local cube/ground scene has passed a 120-step rendered physics smoke test and
+is saved at `scenes/environment_smoke_test.usd`. The robot has not yet been
+converted to USD or calibrated in simulation.
 
 Keep a short log after every milestone:
 
