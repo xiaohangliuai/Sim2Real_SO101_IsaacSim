@@ -1,0 +1,33 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+    subLayers = [@./so101_table_mounted.usda@]
+    customLayerData = {
+        dictionary omni_layer = {
+            string authoring_layer = "./so101_table_mounted_fixed.usda"
+        }
+        dictionary cameraSettings = {
+            string boundCamera = "/World/TableOverview"
+            dictionary Perspective = {
+                double3 position = (1.65, -2.1, 1.5)
+                double3 target = (0, 0, 0.58)
+            }
+        }
+    }
+)
+
+over "World"
+{
+    over "Table" (
+        references = @../assets/objects/wood_frame_table_rtx.usda@
+    )
+    {
+        over "WoodGrain" (
+            active = false
+        )
+        {
+        }
+    }
+}

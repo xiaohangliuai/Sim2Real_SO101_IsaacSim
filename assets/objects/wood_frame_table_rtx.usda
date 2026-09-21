@@ -1,0 +1,359 @@
+#usda 1.0
+(
+    defaultPrim = "Table"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Table" (
+    doc = "Reference-inspired table: 1.20 x 0.60 m; top surface 0.75 m. Original procedural geometry, no external assets. Static collision geometry."
+)
+{
+    def "Looks"
+    {
+        def Material "BlackFrame"
+        {
+            token outputs:surface.connect = </Table/Looks/BlackFrame/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.018, 0.021, 0.023)
+                float inputs:metallic = 0.15
+                float inputs:roughness = 0.48
+                token outputs:surface
+            }
+        }
+
+        def Material "Feet"
+        {
+            token outputs:surface.connect = </Table/Looks/Feet/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.008, 0.008, 0.008)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.85
+                token outputs:surface
+            }
+        }
+
+        def Material "WoodEdge"
+        {
+            token outputs:surface.connect = </Table/Looks/WoodEdge/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.24, 0.135, 0.071)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.55
+                token outputs:surface
+            }
+        }
+
+        def Material "Fasteners"
+        {
+            token outputs:surface.connect = </Table/Looks/Fasteners/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.22, 0.24, 0.26)
+                float inputs:metallic = 0.8
+                float inputs:roughness = 0.3
+                token outputs:surface
+            }
+        }
+
+        def Material "ContactMaterial" (
+            prepend apiSchemas = ["PhysicsMaterialAPI"]
+        )
+        {
+            float physics:dynamicFriction = 0.5
+            float physics:restitution = 0
+            float physics:staticFriction = 0.6
+        }
+
+        def Material "Wood0"
+        {
+            token outputs:surface.connect = </Table/Looks/Wood0/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.31, 0.196, 0.113)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.53
+                token outputs:surface
+            }
+        }
+
+        def Material "Wood1"
+        {
+            token outputs:surface.connect = </Table/Looks/Wood1/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.319, 0.202, 0.117)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.53
+                token outputs:surface
+            }
+        }
+
+        def Material "Wood2"
+        {
+            token outputs:surface.connect = </Table/Looks/Wood2/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.328, 0.208, 0.121)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.53
+                token outputs:surface
+            }
+        }
+
+        def Material "Wood3"
+        {
+            token outputs:surface.connect = </Table/Looks/Wood3/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.337, 0.214, 0.125)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.53
+                token outputs:surface
+            }
+        }
+
+        def Material "Grain"
+        {
+            token outputs:surface.connect = </Table/Looks/Grain/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.235, 0.14, 0.072)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.62
+                token outputs:surface
+            }
+        }
+
+        def Material "WoodTexture"
+        {
+            token outputs:surface.connect = </Table/Looks/WoodTexture/Surface.outputs:surface>
+
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor.connect = </Table/Looks/WoodTexture/BaseColor.outputs:rgb>
+                float inputs:metallic = 0
+                float inputs:roughness = 0.6
+                token outputs:surface
+            }
+
+            def Shader "UV"
+            {
+                uniform token info:id = "UsdPrimvarReader_float2"
+                string inputs:varname = "st"
+                float2 outputs:result
+            }
+
+            def Shader "BaseColor"
+            {
+                uniform token info:id = "UsdUVTexture"
+                float4 inputs:fallback = (0.23, 0.125, 0.065, 1)
+                asset inputs:file = @./textures/walnut_table_basecolor.png@
+                token inputs:sourceColorSpace = "sRGB"
+                float2 inputs:st.connect = </Table/Looks/WoodTexture/UV.outputs:result>
+                token inputs:wrapS = "clamp"
+                token inputs:wrapT = "clamp"
+                float3 outputs:rgb
+            }
+        }
+    }
+
+    def Cube "Top" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/WoodEdge>
+        rel material:binding:physics = </Table/Looks/ContactMaterial>
+        double size = 1
+        float3 xformOp:scale = (1.2, 0.6, 0.025)
+        double3 xformOp:translate = (0, 0, 0.7375)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Leg_0_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.055, 0.055, 0.71)
+        double3 xformOp:translate = (-0.5525, -0.2525, 0.37)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Foot_0_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/Feet>
+        double size = 1
+        float3 xformOp:scale = (0.057, 0.057, 0.015)
+        double3 xformOp:translate = (-0.5525, -0.2525, 0.0075)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Leg_0_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.055, 0.055, 0.71)
+        double3 xformOp:translate = (-0.5525, 0.2525, 0.37)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Foot_0_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/Feet>
+        double size = 1
+        float3 xformOp:scale = (0.057, 0.057, 0.015)
+        double3 xformOp:translate = (-0.5525, 0.2525, 0.0075)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Leg_1_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.055, 0.055, 0.71)
+        double3 xformOp:translate = (0.5525, -0.2525, 0.37)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Foot_1_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/Feet>
+        double size = 1
+        float3 xformOp:scale = (0.057, 0.057, 0.015)
+        double3 xformOp:translate = (0.5525, -0.2525, 0.0075)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Leg_1_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.055, 0.055, 0.71)
+        double3 xformOp:translate = (0.5525, 0.2525, 0.37)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Foot_1_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/Feet>
+        double size = 1
+        float3 xformOp:scale = (0.057, 0.057, 0.015)
+        double3 xformOp:translate = (0.5525, 0.2525, 0.0075)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "LongRail_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (1.05, 0.025, 0.09)
+        double3 xformOp:translate = (0, -0.2525, 0.68)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "LongRail_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (1.05, 0.025, 0.09)
+        double3 xformOp:translate = (0, 0.2525, 0.68)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "EndRail_0" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.025, 0.45, 0.09)
+        double3 xformOp:translate = (-0.5525, 0, 0.68)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "EndRail_1" (
+        prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </Table/Looks/BlackFrame>
+        double size = 1
+        float3 xformOp:scale = (0.025, 0.45, 0.09)
+        double3 xformOp:translate = (0.5525, 0, 0.68)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Mesh "WoodSurface" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        uniform bool doubleSided = 1
+        float3[] extent = [(-0.6, -0.3, 0.7501), (0.6, 0.3, 0.7501)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        rel material:binding = </Table/Looks/WoodTexture>
+        normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+            interpolation = "vertex"
+        )
+        point3f[] points = [(-0.6, -0.3, 0.7501), (0.6, -0.3, 0.7501), (0.6, 0.3, 0.7501), (-0.6, 0.3, 0.7501)]
+        texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+            interpolation = "faceVarying"
+        )
+        uniform token subdivisionScheme = "none"
+    }
+}
+
