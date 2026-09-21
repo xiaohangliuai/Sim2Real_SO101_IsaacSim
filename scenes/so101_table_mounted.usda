@@ -1,0 +1,182 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary omni_layer = {
+            string authoring_layer = "./so101_table_mounted.usda"
+        }
+        dictionary cameraSettings = {
+            dictionary Perspective = {
+                double3 position = (1.65, -2.1, 1.5)
+                double3 target = (0, 0, 0.58)
+            }
+            string boundCamera = "/World/TableOverview"
+        }
+        dictionary tableSetup = {
+            string description = "Reference-inspired wood top / black frame desk; dimensions are assumed, not measured."
+            bool robotFixedToWorld = 1
+            double3 sizeMeters = (1.2, 0.6, 0.75)
+            string sourceScene = "so101_pick_place.usd"
+        }
+    }
+    defaultPrim = "World"
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    subLayers = [
+        @./so101_pick_place.usd@
+    ]
+    upAxis = "Z"
+)
+
+over "physicsScene" (
+    active = false
+)
+{
+}
+
+over "World"
+{
+    def Xform "Table" (
+        prepend references = @../assets/objects/wood_frame_table.usda@
+    )
+    {
+    }
+
+    over "so101_new_calib"
+    {
+        quatd xformOp:orient:tableMount = (0.7071067811865476, 0, 0, 0.7071067811865475)
+        double3 xformOp:translate:tableMount = (0.2, -0.247, 0.7644002612584434)
+        uniform token[] xformOpOrder = ["xformOp:translate:tableMount", "xformOp:orient:tableMount", "xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "root_joint"
+        {
+            point3f physics:localPos0 = (0.2, -0.247, 0.76440024)
+            quatf physics:localRot0 = (0.70710677, 0, 0, 0.70710677)
+        }
+    }
+
+    def "TableMount"
+    {
+        def "Looks"
+        {
+            def Material "Plate"
+            {
+                token outputs:surface.connect = </World/TableMount/Looks/Plate/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.035, 0.04, 0.045)
+                    float inputs:metallic = 0.3
+                    float inputs:roughness = 0.45
+                    token outputs:surface
+                }
+            }
+
+            def Material "Bolts"
+            {
+                token outputs:surface.connect = </World/TableMount/Looks/Bolts/Surface.outputs:surface>
+
+                def Shader "Surface"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.25, 0.27, 0.29)
+                    float inputs:metallic = 0.8
+                    float inputs:roughness = 0.25
+                    token outputs:surface
+                }
+            }
+        }
+
+        def Cube "Plate" (
+            prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </World/TableMount/Looks/Plate>
+            double size = 1
+            float3 xformOp:scale = (0.14, 0.14, 0.012)
+            double3 xformOp:translate = (0.2, -0.23, 0.756)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cylinder "Bolt_0_0" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token axis = "Z"
+            double height = 0.003
+            rel material:binding = </World/TableMount/Looks/Bolts>
+            double radius = 0.004
+            double3 xformOp:translate = (0.258, -0.288, 0.7635)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cylinder "Bolt_0_1" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token axis = "Z"
+            double height = 0.003
+            rel material:binding = </World/TableMount/Looks/Bolts>
+            double radius = 0.004
+            double3 xformOp:translate = (0.142, -0.288, 0.7635)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cylinder "Bolt_1_0" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token axis = "Z"
+            double height = 0.003
+            rel material:binding = </World/TableMount/Looks/Bolts>
+            double radius = 0.004
+            double3 xformOp:translate = (0.258, -0.172, 0.7635)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cylinder "Bolt_1_1" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token axis = "Z"
+            double height = 0.003
+            rel material:binding = </World/TableMount/Looks/Bolts>
+            double radius = 0.004
+            double3 xformOp:translate = (0.142, -0.172, 0.7635)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    over "GroundPlane"
+    {
+        double3 xformOp:translate = (0, 0, 0)
+    }
+
+    def "TableLighting"
+    {
+        def DomeLight "Fill"
+        {
+            color3f inputs:color = (0.91, 0.95, 1)
+            float inputs:intensity = 450
+        }
+
+        def RectLight "Softbox"
+        {
+            float inputs:height = 1
+            float inputs:intensity = 1200
+            float inputs:width = 1.5
+            double3 xformOp:translate = (0, -0.3, 2.3)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    def Camera "TableOverview"
+    {
+        float2 clippingRange = (0.01, 100)
+        float focalLength = 40
+        matrix4d xformOp:transform = ( (0.7863183388224227, 0.6178215519319035, -2.7755575615628914e-17, 0), (-0.20122381121624516, 0.25610303245703936, 0.945473539854986, -0), (0.5841339297037578, -0.7434431832593282, 0.32569891838027715, 0), (1.6500000000000001, -2.1, 1.5, 1.0000000000000002) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+}
