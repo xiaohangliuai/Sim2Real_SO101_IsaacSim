@@ -59,6 +59,7 @@ Validate the composed SO-101 pick-and-place scene after closing the GUI:
 ```bash
 ./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_pick_place_scene.py
 ./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_so101_articulation.py
+./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_pick_place_reset.py
 ```
 
 This check opens `scenes/so101_pick_place_task.usda`, verifies the robot
@@ -71,6 +72,11 @@ The articulation check records the stable six-DOF controller ordering, limits,
 drive properties, independent positive motion, return error, and fixed-base
 drift. Its result is written to `logs/so101_articulation_validation.json`; the
 validated ordering is documented in `docs/so101_joint_validation.md`.
+
+The reset stress test deliberately perturbs the robot, cube, and target before
+each of 20 resets. It verifies repeatable joint and object state, cleared
+velocities, and a fixed robot mount. Its result is written to
+`logs/pick_place_reset_validation.json`.
 
 The launcher uses the image's UID 1234 and the project owner's group for project
 writes. It reuses the cache directories already owned by UID 1234. New project
