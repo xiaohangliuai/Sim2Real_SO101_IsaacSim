@@ -54,6 +54,18 @@ renders 120 physics steps, checks that a cube falls and settles on a local groun
 primitive, and saves `scenes/environment_smoke_test.usd` plus
 `logs/environment_smoke_test.json`. It does not require cloud scene assets.
 
+Validate the composed SO-101 pick-and-place scene after closing the GUI:
+
+```bash
+./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_pick_place_scene.py
+```
+
+This check opens `scenes/so101_pick_place_task.usda`, verifies the robot
+articulation, cube collision setup, target material binding, and end-effector
+frame, then runs 240 physics steps and confirms that the cube settles on the
+table while the robot mount stays fixed. The result is written to
+`logs/pick_place_scene_validation.json`.
+
 The launcher uses the image's UID 1234 and the project owner's group for project
 writes. It reuses the cache directories already owned by UID 1234. New project
 files are group-writable. NVIDIA license acceptance is set for application
