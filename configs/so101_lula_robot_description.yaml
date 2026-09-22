@@ -1,0 +1,22 @@
+api_version: 1.0
+
+# The gripper actuator is deliberately excluded from the arm kinematic chain.
+cspace:
+    - shoulder_pan
+    - shoulder_lift
+    - elbow_flex
+    - wrist_flex
+    - wrist_roll
+
+root_link: base_link
+default_q: [0.0, 0.0, 0.0, 0.0, 0.0]
+
+# Conservative planning limits. These are not measured hardware limits yet.
+acceleration_limits: [4.0, 4.0, 4.0, 5.0, 6.0]
+jerk_limits: [40.0, 40.0, 40.0, 50.0, 60.0]
+
+cspace_to_urdf_rules:
+    - {name: gripper, rule: fixed, value: 0.0}
+
+# Collision spheres will be measured before RMPflow obstacle avoidance.
+collision_spheres: []
