@@ -39,10 +39,12 @@ class SO101PositionController:
                 f"Unknown end-effector frame {end_effector_frame}; "
                 f"available frames: {self.solver.get_all_frame_names()}"
             )
-        if self.solver.get_joint_names() != task.expected_dof_names[:5]:
+        lula_joint_names = self.solver.get_joint_names()
+        expected_joint_names = task.expected_dof_names[: len(lula_joint_names)]
+        if lula_joint_names != expected_joint_names:
             raise RuntimeError(
-                f"Lula joint order {self.solver.get_joint_names()} does not match "
-                f"the articulation order {task.expected_dof_names[:5]}"
+                f"Lula joint order {lula_joint_names} does not match "
+                f"the articulation prefix {expected_joint_names}"
             )
         self._update_base_pose()
         self.articulation_solver = ArticulationKinematicsSolver(
@@ -55,10 +57,17 @@ class SO101PositionController:
         position, orientation = self.robot.get_world_pose()
         self.solver.set_robot_base_pose(position, orientation)
 
-    def get_end_effector_position(self) -> np.ndarray:
+    def get_end_effector_pose(self) -> tuple[np.ndarray, np.ndarray]:
         self._update_base_pose()
-        position, _ = self.articulation_solver.compute_end_effector_pose(position_only=True)
-        return np.asarray(position, dtype=np.float64)
+        position, rotation = self.articulation_solver.compute_end_effector_pose()
+        return (
+            np.asarray(position, dtype=np.float64),
+            np.asarray(rotation, dtype=np.float64),
+        )
+
+    def get_end_effector_position(self) -> np.ndarray:
+        position, _ = self.get_end_effector_pose()
+        return position
 
     def solve(self, target_position: np.ndarray, tolerance: float = 0.005):
         self._update_base_pose()

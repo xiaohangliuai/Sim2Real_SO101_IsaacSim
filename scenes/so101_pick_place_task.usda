@@ -94,10 +94,32 @@ over "World"
 
         over "gripper_link"
         {
+            def Cube "fixed_finger_collision" (
+                prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI", "PhysxCollisionAPI"]
+            )
+            {
+                double size = 1
+                bool physics:collisionEnabled = 1
+                rel material:binding:physics = </World/TaskObjects/GraspContactMaterial>
+                double3 xformOp:scale = (0.012, 0.014, 0.065)
+                double3 xformOp:translate = (-0.006, 0, -0.073)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
         }
 
         over "moving_jaw_so101_v1_link"
         {
+            def Cube "moving_finger_collision" (
+                prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI", "PhysxCollisionAPI"]
+            )
+            {
+                double size = 1
+                bool physics:collisionEnabled = 1
+                rel material:binding:physics = </World/TaskObjects/GraspContactMaterial>
+                double3 xformOp:scale = (0.014, 0.065, 0.014)
+                double3 xformOp:translate = (0, -0.050, 0.019)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
         }
 
         over "gripper_frame_link"
@@ -146,13 +168,21 @@ over "World"
 
     def Xform "TaskObjects"
     {
+        def Material "GraspContactMaterial" (
+            prepend apiSchemas = ["PhysicsMaterialAPI"]
+        )
+        {
+            float physics:dynamicFriction = 2.0
+            float physics:restitution = 0
+            float physics:staticFriction = 2.0
+        }
         quatd xformOp:orient = (1, 0, 0, 0)
         double3 xformOp:scale = (1, 1, 1)
         double3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def Mesh "PickCube" (
-            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxTriangleMeshCollisionAPI", "PhysicsMeshCollisionAPI", "PhysicsRigidBodyAPI", "PhysxRigidBodyAPI", "PhysicsMassAPI"]
+            prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxTriangleMeshCollisionAPI", "PhysicsMeshCollisionAPI", "PhysicsRigidBodyAPI", "PhysxRigidBodyAPI", "PhysicsMassAPI"]
         )
         {
             uniform bool doubleSided = 0
@@ -164,6 +194,7 @@ over "World"
             )
             uniform token physics:approximation = "convexHull"
             bool physics:collisionEnabled = 1
+            rel material:binding:physics = </World/TaskObjects/GraspContactMaterial>
             bool physics:kinematicEnabled = 0
             float physics:mass = 0.05
             bool physics:rigidBodyEnabled = 1
