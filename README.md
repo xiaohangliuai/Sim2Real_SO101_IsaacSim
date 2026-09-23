@@ -62,6 +62,7 @@ Validate the composed SO-101 pick-and-place scene after closing the GUI:
 ./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_pick_place_reset.py
 ./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_so101_reach.py
 ./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_so101_grasp.py
+./scripts/isaac-sim.sh python /workspace/so101/scripts/validate_so101_pick_place.py
 ```
 
 This check opens `scenes/so101_pick_place_task.usda`, verifies the robot
@@ -90,6 +91,13 @@ runs 20 reset, grasp, lift, and hold trials. The task scene supplies explicit
 finger collision proxies and a high-friction contact material. Per-trial results
 are recorded in `logs/so101_grasp_validation.json` and summarized in
 `docs/so101_grasp_validation.md`.
+
+The complete pick-and-place check carries the grasped cube to the target,
+places and releases it, retreats without disturbing it, and returns the robot
+home. It runs 20 full cycles and records placement accuracy, settled velocity,
+and home-position error in `logs/so101_pick_place_validation.json`. The
+controller and measured results are documented in
+`docs/so101_pick_place_validation.md`.
 
 The launcher uses the image's UID 1234 and the project owner's group for project
 writes. It reuses the cache directories already owned by UID 1234. New project

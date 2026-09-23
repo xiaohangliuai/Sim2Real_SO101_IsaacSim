@@ -89,18 +89,24 @@ class SO101GraspController:
         )
 
         states.append("APPROACH")
-        self.position_controller.move_to("pre_grasp", pre_grasp)
+        self.position_controller.move_to(
+            "pre_grasp",
+            pre_grasp,
+            joint_position_overrides={5: self.config.gripper_open_rad},
+        )
         states.append("DESCEND")
         self.position_controller.move_to(
             "descent",
             descent,
             position_tolerance=self.config.maximum_grasp_distance_m,
+            joint_position_overrides={5: self.config.gripper_open_rad},
         )
         states.append("ALIGN")
         self.position_controller.move_to(
             "grasp",
             grasp,
             position_tolerance=self.config.maximum_grasp_distance_m,
+            joint_position_overrides={5: self.config.gripper_open_rad},
         )
         grasp_ee_position, grasp_ee_rotation = (
             self.position_controller.get_end_effector_pose()
@@ -112,7 +118,11 @@ class SO101GraspController:
         states.append("VERIFY_GRASP")
 
         states.append("LIFT")
-        self.position_controller.move_to("lift", lift)
+        self.position_controller.move_to(
+            "lift",
+            lift,
+            joint_position_overrides={5: self.config.gripper_closed_rad},
+        )
         cube_lift = self.task.get_state()["cube_position"]
         ee_position = self.position_controller.get_end_effector_position()
 

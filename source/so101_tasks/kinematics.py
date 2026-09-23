@@ -84,6 +84,7 @@ class SO101PositionController:
         interpolation_steps: int = 180,
         settle_steps: int = 90,
         position_tolerance: float = 0.02,
+        joint_position_overrides: dict[int, float] | None = None,
     ) -> ReachResult:
         target_position = np.asarray(target_position, dtype=np.float64)
         action, success = self.solve(target_position)
@@ -95,6 +96,9 @@ class SO101PositionController:
         start = self.robot.get_joint_positions().copy()
         goal = start.copy()
         goal[active_indices] = goal_active
+        if joint_position_overrides is not None:
+            for index, target in joint_position_overrides.items():
+                goal[index] = target
 
         limits = self.robot.dof_properties
         if np.any(goal < limits["lower"] - 1.0e-5) or np.any(
