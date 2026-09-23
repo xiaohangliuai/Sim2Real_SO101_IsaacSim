@@ -118,6 +118,17 @@ runs two RSL-RL training iterations and saves checkpoints under the ignored
 the SO-101 Isaac Lab task is the next development stage. See
 `docs/isaaclab_setup_validation.md` for measured results and limitations.
 
+Validate the SO-101 robot asset in one and eight Isaac Lab environments:
+
+```bash
+./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --headless --num_envs 1
+./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --headless --num_envs 8
+```
+
+This checks the six-joint mapping, movement, and reset using the imported robot
+USD. Results and the current scope are documented in
+`docs/so101_lab_asset_validation.md`.
+
 The launcher uses the image's UID 1234 and the project owner's group for project
 writes. It reuses the cache directories already owned by UID 1234. New project
 files are group-writable. NVIDIA license acceptance is set for application
