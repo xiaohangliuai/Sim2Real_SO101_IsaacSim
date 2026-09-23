@@ -99,6 +99,25 @@ and home-position error in `logs/so101_pick_place_validation.json`. The
 controller and measured results are documented in
 `docs/so101_pick_place_validation.md`.
 
+## Isaac Lab setup
+
+The headless Isaac Lab runtime uses NVIDIA's Isaac Lab 2.3.0 image, pinned by
+digest for the installed Isaac Sim 5.1 version. Close the Isaac Sim GUI, then
+run these checks from the project root:
+
+```bash
+./scripts/isaac-lab.sh pull
+./scripts/isaac-lab.sh check
+./scripts/isaac-lab.sh ppo-check
+```
+
+`check` runs eight GPU Cartpole environments for 240 steps, including a second
+seeded reset, and writes `logs/isaaclab_setup_validation.json`. `ppo-check`
+runs two RSL-RL training iterations and saves checkpoints under the ignored
+`outputs/isaaclab/` directory. These checks validate the Isaac Lab runtime;
+the SO-101 Isaac Lab task is the next development stage. See
+`docs/isaaclab_setup_validation.md` for measured results and limitations.
+
 The launcher uses the image's UID 1234 and the project owner's group for project
 writes. It reuses the cache directories already owned by UID 1234. New project
 files are group-writable. NVIDIA license acceptance is set for application
@@ -122,7 +141,7 @@ Verified host on 2026-09-19 UTC:
 Start with small scenes and modest camera resolutions. The launcher opens a
 1280x720 logical window with multi-GPU rendering disabled. Automatic ROS 2
 bridge startup is disabled for this initial simulation phase, as planned in the
-roadmap; ROS and Isaac Lab integration are later steps. First startup may take several
+roadmap; ROS and the SO-101 Isaac Lab task are later steps. First startup may take several
 minutes while shaders compile.
 
 Logs are in `logs/` for setup checks and
