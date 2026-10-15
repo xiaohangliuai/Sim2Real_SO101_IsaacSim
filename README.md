@@ -138,7 +138,6 @@ startup; optional telemetry consent is not enabled by this launcher.
 
 Verified host on 2026-09-19 UTC:
 
-- GPU: NVIDIA GeForce RTX 3080, 10,240 MiB VRAM
 - NVIDIA driver: 580.173.02
 - Docker Engine: 29.8.1
 - NVIDIA Container Toolkit: 1.20.1-1
