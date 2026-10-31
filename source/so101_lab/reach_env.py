@@ -4,13 +4,18 @@ from collections.abc import Sequence
 
 import torch
 
-from isaaclab.assets import Articulation, ArticulationCfg
+from isaaclab.assets import ArticulationCfg
 from isaaclab.envs import DirectRLEnv, DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
 from isaaclab.utils import configclass
 
 from .asset_cfg import SO101_CFG, SO101_JOINT_NAMES
+
+
+@configclass
+class SO101ReachSceneCfg(InteractiveSceneCfg):
+    robot: ArticulationCfg = SO101_CFG
 
 
 @configclass
@@ -24,14 +29,11 @@ class SO101ReachEnvCfg(DirectRLEnvCfg):
     state_space = 0
 
     sim: SimulationCfg = SimulationCfg(dt=1.0 / 120.0, render_interval=decimation)
-    scene: InteractiveSceneCfg = InteractiveSceneCfg(
+    scene: SO101ReachSceneCfg = SO101ReachSceneCfg(
         num_envs=8,
         env_spacing=2.0,
         replicate_physics=True,
         clone_in_fabric=False,
-    )
-    robot_cfg: ArticulationCfg = SO101_CFG.replace(
-        prim_path="/World/envs/env_.*/Robot"
     )
 
     target_position = (0.300, 0.0, 0.100)
@@ -52,6 +54,7 @@ class SO101ReachEnv(DirectRLEnv):
         **kwargs,
     ) -> None:
         super().__init__(cfg, render_mode, **kwargs)
+        self.robot = self.scene["robot"]
         if tuple(self.robot.joint_names) != SO101_JOINT_NAMES:
             raise RuntimeError(f"Unexpected SO-101 joints: {self.robot.joint_names}")
         self.ee_body_index = self.robot.body_names.index("gripper_frame_link")
@@ -66,25 +69,18 @@ class SO101ReachEnv(DirectRLEnv):
             device=self.device,
         )
         self.actions = torch.zeros((self.num_envs, 6), device=self.device)
-        self.joint_targets = self.robot.data.default_joint_pos.clone()
-
-    def _setup_scene(self) -> None:
-        self.robot = Articulation(self.cfg.robot_cfg)
-        self.scene.clone_environments(copy_from_source=False)
-        if self.device == "cpu":
-            self.scene.filter_collisions(global_prim_paths=[])
-        self.scene.articulations["robot"] = self.robot
+        self.joint_targets = self.robot.data.default_joint_pos.torch.clone()
 
     def _tool_position(self) -> torch.Tensor:
         return (
-            self.robot.data.body_pos_w[:, self.ee_body_index, :]
+            self.robot.data.body_pos_w.torch[:, self.ee_body_index, :]
             - self.scene.env_origins
         )
 
     def _pre_physics_step(self, actions: torch.Tensor) -> None:
         self.actions = torch.clamp(actions.clone(), -1.0, 1.0)
-        requested = self.robot.data.joint_pos + self.actions * self.action_scale
-        limits = self.robot.data.soft_joint_pos_limits
+        requested = self.robot.data.joint_pos.torch + self.actions * self.action_scale
+        limits = self.robot.data.soft_joint_pos_limits.torch
         self.joint_targets = torch.clamp(
             requested,
             min=limits[:, :, 0],
@@ -92,13 +88,13 @@ class SO101ReachEnv(DirectRLEnv):
         )
 
     def _apply_action(self) -> None:
-        self.robot.set_joint_position_target(self.joint_targets)
+        self.robot.actuators.target_command.set_position_index(value=self.joint_targets)
 
     def _get_observations(self) -> dict:
         policy = torch.cat(
             (
-                self.robot.data.joint_pos,
-                self.robot.data.joint_vel,
+                self.robot.data.joint_pos.torch,
+                self.robot.data.joint_vel.torch,
                 self._tool_position(),
                 self.goal,
                 self.actions,
@@ -130,13 +126,10 @@ class SO101ReachEnv(DirectRLEnv):
         if env_ids is None:
             env_ids = self.robot._ALL_INDICES
         super()._reset_idx(env_ids)
-        joint_pos = self.robot.data.default_joint_pos[env_ids].clone()
-        joint_vel = self.robot.data.default_joint_vel[env_ids].clone()
-        self.robot.write_joint_state_to_sim(
-            joint_pos,
-            joint_vel,
-            env_ids=env_ids,
-        )
-        self.robot.set_joint_position_target(joint_pos, env_ids=env_ids)
+        joint_pos = self.robot.data.default_joint_pos.torch[env_ids].clone()
+        joint_vel = self.robot.data.default_joint_vel.torch[env_ids].clone()
+        self.robot.write_joint_position_to_sim_index(position=joint_pos, env_ids=env_ids)
+        self.robot.write_joint_velocity_to_sim_index(velocity=joint_vel, env_ids=env_ids)
+        self.robot.actuators.target_command.set_position_index(value=joint_pos, env_ids=env_ids)
         self.joint_targets[env_ids] = joint_pos
         self.actions[env_ids] = 0.0

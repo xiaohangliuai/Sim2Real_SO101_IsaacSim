@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Reproducible headless Isaac Lab 2.3.0 environment for Isaac Sim 5.1.
+# Isaac Lab 3.0.0 environment with its bundled Isaac Sim 6.2.
 set -euo pipefail
 
 SCRIPT=$(realpath "${BASH_SOURCE[0]}")
 PROJECT=$(dirname "$(dirname "$SCRIPT")")
-IMAGE_DIGEST=sha256:1b204053c9facaa168b9aacd014061b479dabc0569f35f626dd60ea9d667188a
+IMAGE_DIGEST=sha256:f70acc9ed3bc3fc67099a0c5715379c432cc9965623cabbaf54f74599997e245
 IMAGE=nvcr.io/nvidia/isaac-lab@${IMAGE_DIGEST}
-CACHE=/home/yuto/docker/isaac-sim-5.1
+CACHE=/home/yuto/docker/isaac-lab-3.0
 MODE=${1:-check}
 if (($#)); then shift; fi
 
@@ -25,10 +25,7 @@ docker info >/dev/null
 if [[ $MODE == pull ]]; then
     docker pull "$IMAGE"
     docker image inspect "$IMAGE" >/dev/null
-    docker run --rm --entrypoint bash \
-        --mount "type=bind,src=$CACHE/cache,dst=/cache" \
-        "$IMAGE" -c \
-        'mkdir -p /cache/kit && chown 1234:1234 /cache/kit && chmod 775 /cache/kit'
+    mkdir -p "$CACHE"/{cache/kit,cache/ov,cache/pip,cache/glcache,cache/computecache,logs,data,documents}
     echo "Verified Isaac Lab image: $IMAGE"
     exit 0
 fi
@@ -50,35 +47,34 @@ docker image inspect "$IMAGE" >/dev/null 2>&1 || {
 mkdir -p "$PROJECT/outputs/isaaclab/training" "$PROJECT/outputs/isaaclab/hydra"
 
 ARGS=(--runtime=nvidia --gpus all --init --shm-size=4g
-    --user "1234:$(stat -c %g "$PROJECT")"
-    --group-add "$(stat -c %g "$PROJECT/assets")"
-    -e ACCEPT_EULA=Y -e HOME=/isaac-sim
+    -e ACCEPT_EULA=Y
     -e NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
     --mount "type=bind,src=$PROJECT,dst=/workspace/so101"
     --mount "type=bind,src=$PROJECT/outputs/isaaclab/training,dst=/workspace/isaaclab/logs"
     --mount "type=bind,src=$PROJECT/outputs/isaaclab/hydra,dst=/workspace/isaaclab/outputs"
     --mount "type=bind,src=$CACHE/cache/kit,dst=/isaac-sim/kit/cache"
-    --mount "type=bind,src=$CACHE/cache/main,dst=/isaac-sim/.cache"
-    --mount "type=bind,src=$CACHE/cache/computecache,dst=/isaac-sim/.nv/ComputeCache"
-    --mount "type=bind,src=$CACHE/logs,dst=/isaac-sim/.nvidia-omniverse/logs"
-    --mount "type=bind,src=$CACHE/config,dst=/isaac-sim/.nvidia-omniverse/config"
-    --mount "type=bind,src=$CACHE/data,dst=/isaac-sim/.local/share/ov/data"
-    --mount "type=bind,src=$CACHE/pkg,dst=/isaac-sim/.local/share/ov/pkg"
+    --mount "type=bind,src=$CACHE/cache/ov,dst=/root/.cache/ov"
+    --mount "type=bind,src=$CACHE/cache/pip,dst=/root/.cache/pip"
+    --mount "type=bind,src=$CACHE/cache/glcache,dst=/root/.cache/nvidia/GLCache"
+    --mount "type=bind,src=$CACHE/cache/computecache,dst=/root/.nv/ComputeCache"
+    --mount "type=bind,src=$CACHE/logs,dst=/root/.nvidia-omniverse/logs"
+    --mount "type=bind,src=$CACHE/data,dst=/root/.local/share/ov/data"
+    --mount "type=bind,src=$CACHE/documents,dst=/root/Documents"
     --entrypoint bash)
 
 case "$MODE" in
     check)
         docker run --rm "${ARGS[@]}" "$IMAGE" -c \
-            'umask 002; exec /isaac-sim/python.sh /workspace/so101/scripts/validate_isaaclab_setup.py --headless "$@"' bash "$@"
+            'umask 002; cd /workspace/isaaclab; exec ./isaaclab.sh -p /workspace/so101/scripts/validate_isaaclab_setup.py "$@"' bash "$@"
         ;;
     ppo-check)
         docker run --rm "${ARGS[@]}" "$IMAGE" -c \
-            'umask 002; exec /isaac-sim/python.sh /workspace/isaaclab/scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Cartpole-v0 --num_envs 8 --max_iterations 2 --seed 42 --headless --run_name so101_setup_smoke "$@"' bash "$@"
+            'umask 002; cd /workspace/isaaclab; exec ./isaaclab.sh -p scripts/reinforcement_learning/train.py --rl_library rsl_rl --task Isaac-Cartpole-Direct --num_envs 8 --max_iterations 2 --seed 42 --viz none presets=isaacsim_physx "$@"' bash "$@"
         ;;
     python)
         (($#)) || { echo 'Supply a script path inside /workspace/so101.' >&2; exit 2; }
         docker run --rm "${ARGS[@]}" "$IMAGE" -c \
-            'umask 002; exec /isaac-sim/python.sh "$@"' bash "$@"
+            'umask 002; cd /workspace/isaaclab; exec ./isaaclab.sh -p "$@"' bash "$@"
         ;;
     shell)
         docker run --rm -it "${ARGS[@]}" "$IMAGE" -c \

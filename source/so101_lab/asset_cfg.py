@@ -1,4 +1,4 @@
-"""SO-101 articulation configuration for Isaac Lab 2.3.x."""
+"""SO-101 articulation configuration for Isaac Lab 3.0."""
 
 from isaaclab import sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg

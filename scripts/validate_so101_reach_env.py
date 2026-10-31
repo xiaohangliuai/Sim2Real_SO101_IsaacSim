@@ -45,7 +45,7 @@ def main() -> None:
     maximum_commanded_increment = 0.0
     reset_count = 0
     for step_index in range(args_cli.steps):
-        previous_joint_pos = env.unwrapped.robot.data.joint_pos.clone()
+        previous_joint_pos = env.unwrapped.robot.data.joint_pos.torch.clone()
         actions = torch.zeros((args_cli.num_envs, 6), device=env.unwrapped.device)
         actions[:, 0] = 2.0 if step_index % 2 == 0 else -2.0
         actions[:, 5] = 2.0

@@ -56,33 +56,35 @@ def main() -> None:
     assert robot.num_instances == args_cli.num_envs
     assert robot.num_joints == 6
 
-    home_pos = robot.data.default_joint_pos.clone()
-    home_vel = robot.data.default_joint_vel.clone()
+    home_pos = robot.data.default_joint_pos.torch.clone()
+    home_vel = robot.data.default_joint_vel.torch.clone()
     assert torch.allclose(home_pos, torch.zeros_like(home_pos), atol=1.0e-6)
     assert torch.allclose(home_vel, torch.zeros_like(home_vel), atol=1.0e-6)
 
-    robot.write_joint_state_to_sim(home_pos, home_vel)
-    robot.set_joint_position_target(home_pos)
+    robot.write_joint_position_to_sim_index(position=home_pos)
+    robot.write_joint_velocity_to_sim_index(velocity=home_vel)
+    robot.actuators.target_command.set_position_index(value=home_pos)
     scene.reset()
     step(sim, scene, 120)
-    settled = robot.data.joint_pos.clone()
+    settled = robot.data.joint_pos.torch.clone()
 
     target = home_pos.clone()
     target[:, 0] = 0.08
     target[:, 5] = 0.15
-    robot.set_joint_position_target(target)
+    robot.actuators.target_command.set_position_index(value=target)
     step(sim, scene, 180)
-    moved = robot.data.joint_pos.clone()
+    moved = robot.data.joint_pos.torch.clone()
     arm_motion = moved[:, 0] - settled[:, 0]
     gripper_motion = moved[:, 5] - settled[:, 5]
     assert bool(torch.all(arm_motion > 0.04).item()), arm_motion.tolist()
     assert bool(torch.all(gripper_motion > 0.08).item()), gripper_motion.tolist()
 
-    robot.write_joint_state_to_sim(home_pos, home_vel)
-    robot.set_joint_position_target(home_pos)
+    robot.write_joint_position_to_sim_index(position=home_pos)
+    robot.write_joint_velocity_to_sim_index(velocity=home_vel)
+    robot.actuators.target_command.set_position_index(value=home_pos)
     scene.reset()
     step(sim, scene, 120)
-    reset_pos = robot.data.joint_pos.clone()
+    reset_pos = robot.data.joint_pos.torch.clone()
     reset_error = float(torch.max(torch.abs(reset_pos - settled)).item())
     assert reset_error < 0.03, f"Reset error: {reset_error:.6f} rad"
     assert bool(torch.isfinite(reset_pos).all().item())

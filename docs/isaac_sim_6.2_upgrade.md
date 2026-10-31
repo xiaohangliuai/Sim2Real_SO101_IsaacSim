@@ -61,7 +61,7 @@ powersave setting was retained.
 The GUI also logged bundled Fabric interface-version and initial material-cache
 warnings; it subsequently reached readiness and passed its container health check.
 
-## Launch and rollback
+## Launch
 
 ```bash
 cd /home/yuto/Robotics/Sim2Real_SO101_IsaacSim
@@ -70,21 +70,11 @@ cd /home/yuto/Robotics/Sim2Real_SO101_IsaacSim
 ./scripts/isaac-sim.sh stop
 ```
 
-To use the retained 5.1 installation after stopping 6.2:
-
-```bash
-./scripts/isaac-sim-5.1.sh start
-# Later:
-./scripts/isaac-sim-5.1.sh stop
-```
-
-The old image, stopped container `so101-isaac-sim`, and
-`/home/yuto/docker/isaac-sim-5.1` caches remain available. Both launchers mount
-the same project at `/workspace/so101`; save scenes there. The new `pull` command
-downloads 6.2 and prepares its cache permissions if setup must be repeated.
-
-`scripts/isaac-lab.sh` remains pinned to Isaac Lab 2.3.0 with its own Isaac Sim
-5.1 runtime. This upgrade did not migrate or revalidate Isaac Lab or run training.
+The 5.1 image, container, caches, and fallback launcher were removed after
+Isaac Lab 3.0 validation. Both current launchers mount the same project at
+`/workspace/so101`; save scenes there. The `pull` command downloads 6.2 and
+prepares its cache permissions if setup must be repeated. See the
+[Isaac Lab 3.0 upgrade report](isaaclab_3.0_upgrade.md) for its validation.
 
 ## NVIDIA references
 

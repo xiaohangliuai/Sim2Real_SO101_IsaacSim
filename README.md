@@ -4,10 +4,8 @@ This project uses the `nvcr.io/nvidia/isaac-sim:6.2.0` Docker image.
 The directory `/home/yuto/docker/isaac-sim-6.2` stores persistent caches, settings,
 and logs; the application itself is inside the Docker image.
 
-The previous Isaac Sim 5.1 image, container, and caches are retained. Use
-`./scripts/isaac-sim-5.1.sh` with the same commands below to run that version.
-Close one version before starting the other. The separate Isaac Lab launcher
-still uses its pinned Isaac Lab 2.3.0 / Isaac Sim 5.1 image.
+Isaac Lab 3.0.0 uses its own NVIDIA image bundled with Isaac Sim 6.2. Close the
+Isaac Sim GUI before running the Lab checks to leave GPU memory available.
 
 ## Start and stop
 
@@ -106,10 +104,9 @@ controller and measured results are documented in
 
 ## Isaac Lab setup
 
-The headless Isaac Lab runtime uses NVIDIA's Isaac Lab 2.3.0 image, pinned by
-digest with its own Isaac Sim 5.1 runtime. It is independent of the upgraded
-Isaac Sim 6.2 GUI/Python launcher. Close the Isaac Sim GUI, then
-run these checks from the project root:
+The headless Isaac Lab runtime uses NVIDIA's Isaac Lab 3.0.0 image, pinned by
+digest with its bundled Isaac Sim 6.2 runtime. Close the Isaac Sim GUI, then
+run these commands from the project root:
 
 ```bash
 ./scripts/isaac-lab.sh pull
@@ -121,24 +118,24 @@ run these checks from the project root:
 seeded reset, and writes `logs/isaaclab_setup_validation.json`. `ppo-check`
 runs two RSL-RL training iterations and saves checkpoints under the ignored
 `outputs/isaaclab/` directory. These checks validate the Isaac Lab runtime;
-the SO-101 Isaac Lab task is the next development stage. See
-`docs/isaaclab_setup_validation.md` for measured results and limitations.
+the SO-101 Isaac Lab task is available for further development. See
+`docs/isaaclab_3.0_upgrade.md` for measured results and limitations.
 
 Validate the SO-101 robot asset in one and eight Isaac Lab environments:
 
 ```bash
-./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --headless --num_envs 1
-./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --headless --num_envs 8
+./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --num_envs 1
+./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_lab_asset.py --num_envs 8
+./scripts/isaac-lab.sh python /workspace/so101/scripts/validate_so101_reach_env.py --num_envs 8 --steps 120
 ```
 
 This checks the six-joint mapping, movement, and reset using the imported robot
 USD. Results and the current scope are documented in
 `docs/so101_lab_asset_validation.md`.
 
-The launcher uses the image's UID 1234 and the project owner's group for project
-writes. It reuses the cache directories already owned by UID 1234. New project
-files are group-writable. NVIDIA license acceptance is set for application
-startup; optional telemetry consent is not enabled by this launcher.
+The Lab image runs as UID 1000 and uses separate cache directories under
+`/home/yuto/docker/isaac-lab-3.0`. NVIDIA license acceptance is set for
+application startup; optional telemetry consent is not enabled by this launcher.
 
 ## Versions and diagnostics
 
@@ -152,15 +149,13 @@ Upgraded on 2026-10-31 for the NVIDIA GeForce RTX 5070 Ti (16,303 MiB):
 - Existing SO-101 scene, six-joint articulation, and 3/3 pick-and-place cycles: passed
 - Upgrade logs and original file backups: `logs/upgrade-2026-10-31/`
 
-See [the upgrade report](docs/isaac_sim_6.2_upgrade.md) for validation details
-and rollback instructions.
+See [the Isaac Sim upgrade report](docs/isaac_sim_6.2_upgrade.md) for its
+validation details.
 
-To prepare the 6.2 image and its separate cache directories again, run
-`./scripts/isaac-sim.sh pull`. To use the retained version, stop 6.2 and run
-`./scripts/isaac-sim-5.1.sh start`. Both versions mount the same project files;
-their caches, settings, logs, and GUI containers are separate.
+To prepare the 6.2 image and its cache directories again, run
+`./scripts/isaac-sim.sh pull`.
 
-Historical validation of the retained Isaac Sim 5.1 environment on 2026-09-19 UTC:
+Historical validation of the removed Isaac Sim 5.1 environment on 2026-09-19 UTC:
 
 - NVIDIA driver: 580.173.02
 - Docker Engine: 29.8.1

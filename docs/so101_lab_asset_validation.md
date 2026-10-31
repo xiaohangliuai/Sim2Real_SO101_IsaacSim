@@ -1,4 +1,7 @@
-# SO-101 asset in Isaac Lab
+# SO-101 asset in Isaac Lab (historical 2.3 validation)
+
+For the current Isaac Lab 3.0 validation, see
+[the upgrade report](isaaclab_3.0_upgrade.md).
 
 The SO-101 robot can now be spawned as an Isaac Lab `Articulation` from the
 existing imported USD. The configuration is in `source/so101_lab/asset_cfg.py`.

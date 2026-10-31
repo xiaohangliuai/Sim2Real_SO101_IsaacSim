@@ -1,4 +1,8 @@
-# Isaac Lab runtime validation
+# Isaac Lab 2.3 runtime validation (historical)
+
+This report records the previous installation. Isaac Lab 2.3 and its Isaac Sim
+5.1 container have been removed. See [Isaac Lab 3.0 upgrade](isaaclab_3.0_upgrade.md)
+for the current setup.
 
 The project uses NVIDIA's headless Isaac Lab 2.3.0 container on the existing
 Isaac Sim 5.1 host. `scripts/isaac-lab.sh` pins this image digest:

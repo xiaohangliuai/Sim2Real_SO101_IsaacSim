@@ -12,7 +12,7 @@ from isaaclab.app import AppLauncher
 
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--task", default="Isaac-Cartpole-v0")
+parser.add_argument("--task", default="Isaac-Cartpole-Direct")
 parser.add_argument("--num_envs", type=int, default=8)
 parser.add_argument("--steps", type=int, default=240)
 parser.add_argument("--seed", type=int, default=42)
