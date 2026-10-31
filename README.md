@@ -1,8 +1,13 @@
 # SO-101 Isaac Sim environment
 
-This project uses the installed `nvcr.io/nvidia/isaac-sim:5.1.0` Docker image.
-The directory `/home/yuto/docker/isaac-sim-5.1` stores persistent caches, settings,
+This project uses the `nvcr.io/nvidia/isaac-sim:6.2.0` Docker image.
+The directory `/home/yuto/docker/isaac-sim-6.2` stores persistent caches, settings,
 and logs; the application itself is inside the Docker image.
+
+The previous Isaac Sim 5.1 image, container, and caches are retained. Use
+`./scripts/isaac-sim-5.1.sh` with the same commands below to run that version.
+Close one version before starting the other. The separate Isaac Lab launcher
+still uses its pinned Isaac Lab 2.3.0 / Isaac Sim 5.1 image.
 
 ## Start and stop
 
@@ -41,7 +46,7 @@ ready for the later robot-import phase in the roadmap.
 
 ## Verify or run Python
 
-Close the GUI before running a second simulator instance on the 10 GB GPU.
+Close the GUI before running a second simulator instance on the 16 GB GPU.
 
 ```bash
 ./scripts/isaac-sim.sh check
@@ -102,7 +107,8 @@ controller and measured results are documented in
 ## Isaac Lab setup
 
 The headless Isaac Lab runtime uses NVIDIA's Isaac Lab 2.3.0 image, pinned by
-digest for the installed Isaac Sim 5.1 version. Close the Isaac Sim GUI, then
+digest with its own Isaac Sim 5.1 runtime. It is independent of the upgraded
+Isaac Sim 6.2 GUI/Python launcher. Close the Isaac Sim GUI, then
 run these checks from the project root:
 
 ```bash
@@ -136,7 +142,25 @@ startup; optional telemetry consent is not enabled by this launcher.
 
 ## Versions and diagnostics
 
-Verified host on 2026-09-19 UTC:
+Upgraded on 2026-10-31 for the NVIDIA GeForce RTX 5070 Ti (16,303 MiB):
+
+- Isaac Sim: `6.2.0`, official NVIDIA container
+- Image digest: `sha256:a025b65a7442d56806a1cc3f5eed081caf736c24b72d62dccf68ef66945d8690`
+- Host driver: `595.99.02`; no driver replacement was necessary
+- Bundled PyTorch: `2.11.0+cu128`; CUDA compute capability: `12.0`
+- NVIDIA compatibility checker and CUDA/rendered physics smoke test: passed
+- Existing SO-101 scene, six-joint articulation, and 3/3 pick-and-place cycles: passed
+- Upgrade logs and original file backups: `logs/upgrade-2026-10-31/`
+
+See [the upgrade report](docs/isaac_sim_6.2_upgrade.md) for validation details
+and rollback instructions.
+
+To prepare the 6.2 image and its separate cache directories again, run
+`./scripts/isaac-sim.sh pull`. To use the retained version, stop 6.2 and run
+`./scripts/isaac-sim-5.1.sh start`. Both versions mount the same project files;
+their caches, settings, logs, and GUI containers are separate.
+
+Historical validation of the retained Isaac Sim 5.1 environment on 2026-09-19 UTC:
 
 - NVIDIA driver: 580.173.02
 - Docker Engine: 29.8.1
@@ -155,7 +179,7 @@ roadmap; ROS and the SO-101 Isaac Lab task are later steps. First startup may ta
 minutes while shaders compile.
 
 Logs are in `logs/` for setup checks and
-`/home/yuto/docker/isaac-sim-5.1/logs` for persistent application logs.
+`/home/yuto/docker/isaac-sim-6.2/logs` for persistent application logs.
 Headless checks can print GLFW/no-display warnings because they have no GUI.
 
-Reference: [NVIDIA Isaac Sim 5.1 container documentation](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/installation/install_container.html#container-deployment-with-gui).
+Reference: [NVIDIA Isaac Sim container documentation](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_container.html#container-deployment-with-gui).

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Local Isaac Sim 5.1 Docker environment. Run from any directory.
+# Local Isaac Sim 6.2 Docker environment. Run from any directory.
 set -euo pipefail
 SCRIPT=$(realpath "${BASH_SOURCE[0]}")
 PROJECT=$(dirname "$(dirname "$SCRIPT")")
-IMAGE=nvcr.io/nvidia/isaac-sim:5.1.0
-CACHE=/home/yuto/docker/isaac-sim-5.1
-NAME=so101-isaac-sim
+IMAGE=nvcr.io/nvidia/isaac-sim:6.2.0
+CACHE=/home/yuto/docker/isaac-sim-6.2
+NAME=so101-isaac-sim-6.2
 MODE=${1:-start}
 if (($#)); then shift; fi
 if [[ $MODE == help || $MODE == --help ]]; then
-    echo "Usage: $SCRIPT {start [Kit arguments]|stop|status|logs|check|python SCRIPT [args]|shell}"
+    echo "Usage: $SCRIPT {pull|start [Kit arguments]|stop|status|logs|check|python SCRIPT [args]|shell}"
     exit 0
 fi
 # A desktop opened before usermod may have stale supplementary groups.
@@ -18,6 +18,15 @@ if ! id -nG | tr ' ' '\n' | grep -qx docker && id -nG "$(id -un)" | tr ' ' '\n' 
     exec sg docker -c "exec bash$COMMAND"
 fi
 docker info >/dev/null
+if [[ $MODE == pull ]]; then
+    docker pull "$IMAGE"
+    mkdir -p "$CACHE"/{cache/main,cache/computecache,cache/kit,logs,config,data,pkg}
+    docker run --rm --user 0:0 --entrypoint bash \
+        --mount "type=bind,src=$CACHE,dst=/cache" "$IMAGE" -c \
+        'chown -R 1234:1234 /cache && chmod -R u+rwX,g+rwX /cache'
+    echo "Ready: $IMAGE (cache: $CACHE)"
+    exit 0
+fi
 case "$MODE" in
     stop) exec docker stop --timeout 30 "$NAME" ;;
     status) exec docker ps -a --filter "name=^/${NAME}$" ;;
@@ -25,12 +34,19 @@ case "$MODE" in
     start|check|python|shell) ;;
     *) echo "Unknown mode: $MODE" >&2; exit 2 ;;
 esac
+docker image inspect "$IMAGE" >/dev/null 2>&1 || {
+    echo "Missing image. Run: $SCRIPT pull" >&2; exit 1
+}
+[[ -d $CACHE/cache/kit ]] || {
+    echo "Missing cache directories. Run: $SCRIPT pull" >&2; exit 1
+}
 # Keep the image's UID for its home/cache, but write project files with the host GID.
 ARGS=(--runtime=nvidia --gpus all --init --shm-size=2g
     --user "1234:$(stat -c %g "$PROJECT")" --group-add "$(stat -c %g "$PROJECT/assets")"
     -e ACCEPT_EULA=Y -e NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,display
     --mount "type=bind,src=$PROJECT,dst=/workspace/so101"
     --mount "type=bind,src=$CACHE/cache/main,dst=/isaac-sim/.cache"
+    --mount "type=bind,src=$CACHE/cache/kit,dst=/isaac-sim/kit/cache"
     --mount "type=bind,src=$CACHE/cache/computecache,dst=/isaac-sim/.nv/ComputeCache"
     --mount "type=bind,src=$CACHE/logs,dst=/isaac-sim/.nvidia-omniverse/logs"
     --mount "type=bind,src=$CACHE/config,dst=/isaac-sim/.nvidia-omniverse/config"

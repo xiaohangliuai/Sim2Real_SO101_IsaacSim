@@ -1,4 +1,4 @@
-"""Verify rendering, physics, and project writes; save a small local USD scene."""
+"""Verify CUDA, rendering, physics, and writes; save a small local USD scene."""
 from pathlib import Path
 import json
 from isaacsim import SimulationApp
@@ -6,10 +6,21 @@ from isaacsim import SimulationApp
 app = SimulationApp({"headless": True, "width": 640, "height": 480})
 try:
     import numpy as np
+    import torch
     import omni.usd
     from pxr import UsdGeom, UsdLux, Gf
     from isaacsim.core.api import World
     from isaacsim.core.api.objects import DynamicCuboid, FixedCuboid
+
+    assert torch.cuda.is_available(), 'CUDA is not available inside Isaac Sim'
+    # Execute a CUDA kernel: device discovery alone misses unsupported GPU builds.
+    matrix = torch.ones((128, 128), device='cuda')
+    product = matrix @ matrix
+    torch.cuda.synchronize()
+    assert torch.all(product == 128).item(), 'CUDA matrix multiplication failed'
+    gpu = {'name': torch.cuda.get_device_name(0),
+           'compute_capability': list(torch.cuda.get_device_capability(0)),
+           'torch': torch.__version__, 'cuda': torch.version.cuda}
 
     project = Path('/workspace/so101')
     world = World(stage_units_in_meters=1.0)
@@ -35,7 +46,7 @@ try:
     cube.set_world_pose(position=np.array([0., 0., 0.5]))
     scene = project / 'scenes/environment_smoke_test.usd'
     assert stage.GetRootLayer().Export(str(scene)), 'USD export failed'
-    result = {'result': 'PASS', 'physics_steps': 120,
+    result = {'result': 'PASS', 'gpu': gpu, 'physics_steps': 120,
               'start_position': start.tolist(), 'settled_position': end.tolist(),
               'scene': str(scene)}
     (project / 'logs/environment_smoke_test.json').write_text(json.dumps(result, indent=2) + '\n')
